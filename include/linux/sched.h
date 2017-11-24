@@ -16,11 +16,11 @@
 
 // 定义任务状态
 
-#define TASK_RUNNING 0
-#define TASK_INTERRUPTIBLE 1
-#define TASK_UNINTERRUPTIBLE 2
-#define TASK_ZOMBIE 3
-#define TASK_STOPPED 4
+#define TASK_RUNNING			0 // 运行状态
+#define TASK_INTERRUPTIBLE		1 // 可中断睡眠状态
+#define TASK_UNINTERRUPTIBLE	2 // 不可中断睡眠状态
+#define TASK_ZOMBIE				3 // 僵死状态
+#define TASK_STOPPED			4 // 暂停状态
 
 #ifndef NULL
 #define NULL ((void *)(0))
