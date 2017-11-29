@@ -1,10 +1,8 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
-// 最多有 64 个进程（任务）同时处于系统中
-#define NR_TASKS 64
-// 时钟频率 100 hz
-#define HZ 100
+#define NR_TASKS 64 // 系统中同时最多有 64 个进程（任务）
+#define HZ 100      // 时钟频率 100 hz
 
 #define FIRST_TASK task[0]
 #define LAST_TASK task[NR_TASKS-1]
@@ -14,37 +12,42 @@
 // 目前signal.h 仅仅具有最基本的sigaction结构，之后会实现signal
 #include<signal.h>
 
-// 定义任务状态
-
-#define TASK_RUNNING			0 // 运行状态
-#define TASK_INTERRUPTIBLE		1 // 可中断睡眠状态
-#define TASK_UNINTERRUPTIBLE	2 // 不可中断睡眠状态
-#define TASK_ZOMBIE				3 // 僵死状态
-#define TASK_STOPPED			4 // 暂停状态
+// 定义进程运行可能处于的状态。
+//定义进程运行可能处于的状态。
+#define TASK_RUNNING 0         //进程正在运行或已准备就绪。
+#define TASK_INTERRUPTIBLE 1   //进程处于可中断等待状态。
+#define TASK_UNINTERRUPTIBLE 2 //进程处于不可中断等待状态，主要用于I/O操作等待。
+#define TASK_ZOMBIE 3          //进程处于僵死状态，已经停止运行，但父进程还没有发信号。
+#define TASK_STOPPED 4         //进程已停止。
 
 #ifndef NULL
 #define NULL ((void *)(0))
 #endif
 
+//复制进程的页目录页表。
 extern int copy_page_tables(unsigned long from, unsigned long to, unsigned long size);
+//释放页表所指定的内存块及页表本身。
 extern int free_page_tables(unsigned long from, unsigned long size);
+
+//进程调度函数。
 extern void schedule(void);
 
-typedef int (*fn_ptr)();
+typedef int (*fn_ptr)(); //定义函数指针类型。
 
-struct i387_struct {
-    long cwd;       // 控制字(Control)
-    long swd;       // 状态字(State)
-    long twd;       // 标记字(Tag)
-    long fip;       // 协处理器代码指针IP
-    long fcs;       // 协处理器代码段寄存器CS
-    long foo;       // 内存offset
-    long fos;       // 内存段
-    long st_space[20];      // 8个10字节的协处理器累加器
+//下面是数学协处理器使用的结构，主要用于保存进程切换时i387的执行状态信息。
+struct i387_struct
+{
+    long cwd;          // 控制字(Control word)
+    long swd;          // 状态字(Status word)
+    long twd;          // 标记字(Tag word)
+    long fip;          // 协处理器代码指针IP
+    long fcs;          // 协处理器代码段寄存器CS
+    long foo;          // 内存操作数的偏移位置
+    long fos;          // 内存操作数的段值
+    long st_space[20]; // 8个10字节的协处理器累加器
 };
 
-// 这里是和TSS结构对应的，要注意变量的顺序，具体参考Intel手册
-// 还包含了 i387 协处理器的结构
+// 任务状态段TSS的数据结构，包含了 i387 协处理器的结构
 struct tss_struct {
     long back_link;
     long esp0;
@@ -123,6 +126,8 @@ struct task_struct {
     struct tss_struct tss;          // 该进程的TSS结构
 };
 
+//INIT_TASK 用于设置第1个任务表；不应修改。
+//基址 Base = 0，段长 limit = 0x9ffff (= 640kB)
 #define INIT_TASK \
 /* state info */ {0,15,15, \
 /* signals */    0,{{},},0, \
@@ -145,22 +150,26 @@ struct task_struct {
     } \
 }
 
-extern struct task_struct *task[NR_TASKS];
-extern struct task_struct *last_task_used_math;
-extern struct task_struct *current;
+extern struct task_struct *task[NR_TASKS];      //任务指针数组
+extern struct task_struct *last_task_used_math; //上一个使用过数学协处理器的进程
+extern struct task_struct *current;             //从开机起计算的jiffies (10 ms / 1 jiffy)
 extern long volatile jiffies;
-extern long start_time;
+extern long start_time; //开机时间，从1970年1月1日00:00开始计时
 
-#define CURRENT_TIME (start_time + jiffies / HZ)
+#define CURRENT_TIME (start_time + jiffies / HZ) //当前时间（秒数）
 
-extern void add_timer(long *jiffies, void(*fn)(void));
+//添加定时器函数（定时时间jiffies，定时到时调用函数*fn()）
+extern void add_timer(long *jiffies, void (*fn)(void));
+//不可中断的等待睡眠。
 extern void sleep_on(struct task_struct **p);
+//可中断的等待睡眠。
 extern void interruptible_sleep_on(struct task_struct **p);
+//明确唤醒睡眠的进程。
 extern void wake_up(struct task_struct **p);
 extern void show_task_info(struct task_struct *task);
 
-#define FIRST_TSS_ENTRY 4
-#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY+1)
+#define FIRST_TSS_ENTRY 4                     //全局表中第1个任务状态段(TSS)描述符的选择符索引号
+#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY + 1) //全局表中第1个局部描述符表(LDT)描述符的选择符索引号。
 // 下面计算出TSS，LDT在GDT中的偏移量
 // _TSS(n)表示第n个TSS，计算方式为，第一个 TSS 的入口为 4 << 3(因为每一个Entry占8Byte, 所以第4个的偏移量为4 << 3)
 #define _TSS(n) ((((unsigned long) n) << 4) + (FIRST_TSS_ENTRY << 3))
@@ -222,7 +231,7 @@ extern void show_task_info(struct task_struct *task);
             )
 
 #define set_base(ldt, base) _set_base(((char *)&(ldt)), (base))
-// limit >> 12 是因为当Descriptor中G位置位的时候，Limit单位是4KB
+// limit >> 12 是因为当Descriptor中G位置位的时候，limit单位是4KB
 #define set_limit(ldt, limit) _set_limit(((char *)ldt), (limit - 1) >> 12)
 
 static inline unsigned long _get_base(char *addr) {
