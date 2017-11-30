@@ -158,14 +158,11 @@ extern long start_time; //开机时间，从1970年1月1日00:00开始计时
 
 #define CURRENT_TIME (start_time + jiffies / HZ) //当前时间（秒数）
 
-//添加定时器函数（定时时间jiffies，定时到时调用函数*fn()）
-extern void add_timer(long *jiffies, void (*fn)(void));
-//不可中断的等待睡眠。
-extern void sleep_on(struct task_struct **p);
-//可中断的等待睡眠。
-extern void interruptible_sleep_on(struct task_struct **p);
-//明确唤醒睡眠的进程。
-extern void wake_up(struct task_struct **p);
+
+extern void add_timer(long *jiffies, void (*fn)(void));//添加定时器函数（定时时间jiffies，定时到时调用函数*fn()）
+extern void sleep_on(struct task_struct **p);//不可中断的等待睡眠。
+extern void interruptible_sleep_on(struct task_struct **p);//可中断的等待睡眠。
+extern void wake_up(struct task_struct **p);//明确唤醒睡眠的进程：从不可中断睡眠状态唤醒到可运行的就绪状态。
 extern void show_task_info(struct task_struct *task);
 
 #define FIRST_TSS_ENTRY 4                     //全局表中第1个任务状态段(TSS)描述符的选择符索引号
