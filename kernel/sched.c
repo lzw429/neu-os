@@ -110,7 +110,7 @@ void schedule(void) {
     // These two lines of code will cause OS Crash
     // When switch to printk it won't
     // Why?
-    switch_to(next)
+    switch_to(next) // 进程切换宏，不是函数
 }
 
 void show_task_info(struct task_struct *task) {

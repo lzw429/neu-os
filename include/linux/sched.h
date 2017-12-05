@@ -59,7 +59,7 @@ struct tss_struct {
     long cr3;
     long eip;
     long eflags;
-    long eax, ecx, edx, ebx;        // 顺序很重要
+    long eax, ecx, edx, ebx;        // 注意顺序
     long esp;
     long ebp;
     long esi;
@@ -150,23 +150,23 @@ struct task_struct {
     } \
 }
 
-extern struct task_struct *task[NR_TASKS];      //任务指针数组
-extern struct task_struct *last_task_used_math; //上一个使用过数学协处理器的进程
-extern struct task_struct *current;             //从开机起计算的jiffies (10 ms / 1 jiffy)
+extern struct task_struct *task[NR_TASKS];      // 任务指针数组
+extern struct task_struct *last_task_used_math; // 上一个使用过数学协处理器的进程
+extern struct task_struct *current;             // 当前进程结构指针变量
 extern long volatile jiffies;
 extern long start_time; //开机时间，从1970年1月1日00:00开始计时
 
-#define CURRENT_TIME (start_time + jiffies / HZ) //当前时间（秒数）
+#define CURRENT_TIME (start_time + jiffies / HZ) //当前时间（秒数）；从开机起计算的jiffies (10 ms / 1 jiffy)
 
 
-extern void add_timer(long *jiffies, void (*fn)(void));//添加定时器函数（定时时间jiffies，定时到时调用函数*fn()）
-extern void sleep_on(struct task_struct **p);//不可中断的等待睡眠。
-extern void interruptible_sleep_on(struct task_struct **p);//可中断的等待睡眠。
-extern void wake_up(struct task_struct **p);//明确唤醒睡眠的进程：从不可中断睡眠状态唤醒到可运行的就绪状态。
+extern void add_timer(long *jiffies, void (*fn)(void));		// 添加定时器函数（定时时间jiffies，定时到时调用函数*fn()）
+extern void sleep_on(struct task_struct **p);				// 不可中断的等待睡眠
+extern void interruptible_sleep_on(struct task_struct **p);	// 可中断的等待睡眠
+extern void wake_up(struct task_struct **p);				// 明确唤醒睡眠的进程：从不可中断睡眠状态唤醒到可运行的就绪状态
 extern void show_task_info(struct task_struct *task);
 
-#define FIRST_TSS_ENTRY 4                     //全局表中第1个任务状态段(TSS)描述符的选择符索引号
-#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY + 1) //全局表中第1个局部描述符表(LDT)描述符的选择符索引号。
+#define FIRST_TSS_ENTRY 4                     // 全局表中第1个任务状态段(TSS)描述符的选择符索引号
+#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY + 1) // 全局表中第1个局部描述符表(LDT)描述符的选择符索引号
 // 下面计算出TSS，LDT在GDT中的偏移量
 // _TSS(n)表示第n个TSS，计算方式为，第一个 TSS 的入口为 4 << 3(因为每一个Entry占8Byte, 所以第4个的偏移量为4 << 3)
 #define _TSS(n) ((((unsigned long) n) << 4) + (FIRST_TSS_ENTRY << 3))
@@ -182,8 +182,9 @@ extern void show_task_info(struct task_struct *task);
                     : "a" (0), "i" (FIRST_TSS_ENTRY << 3))
 
 
-// #define PAGE_ALIGN(n) (((n) + 0xfff) & 0xfffff000) 这一行虽然在原有的linux0.11中，不过在整个repo中都没有使用到
+// #define PAGE_ALIGN(n) (((n) + 0xfff) & 0xfffff000) 这一行虽然在原有的Linux 0.11中，不过在整个repo中都没有使用到
 
+// 进程切换宏，使用了内联汇编
 #define switch_to(n) {\
     struct {long a, b;} __tmp; \
     __asm__ volatile ("cmpl %%ecx, current\n\t" \

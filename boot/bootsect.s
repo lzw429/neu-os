@@ -10,8 +10,6 @@
 # 0x9000:0000 bootsect
 # 0x9000:0200 setup
 # 0x1000:0000 system
-# 这段代码没有需要学生进行修改的地方
-# 有兴趣的同学可以仔细读一下 read_it 子程序
 
 	.code16        # 指定语法为 十六位汇编
 	.equ SYSSIZE, 0x3000 # System Size in Clicks(1 click = 16bits)
