@@ -3,18 +3,19 @@
 
 #include<linux/sched.h>
 
-extern int sys_fork();
-extern int sys_pause();
+extern int sys_fork(); // 创建进程(kernel/system_call.s)
+extern int sys_execve(); // 执行程序(kernel/system_call.s)
+extern int sys_pause(); // 暂停进程运行(kernel/sched.c)
 extern int stub_syscall();
 extern int serial_debugstr(char *str);
-extern int sys_kill(int pid, int sig);
+extern int sys_kill(int pid, int sig); // 终止进程(kernel/exit.c)
 extern int sys_sigaction(int signum, struct sigaction *action, struct sigaction *old_action);
 extern int sys_sgetmask(void);
 extern int sys_ssetmask(int newmask);
 // Just for debug use
 extern int tty_read(int channel, char *buf, int nr);
 extern int _user_tty_write(int channel, char *buf, int nr);
-extern int sys_alarm(long seconds);
+extern int sys_alarm(long seconds); // 设置报警 (kernel/sched.c)
 extern int sys_sleep(long seconds);
 
 // 目前除了少数syscall之外其余的syscall均为stub状态

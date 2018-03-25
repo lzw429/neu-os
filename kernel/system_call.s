@@ -96,6 +96,7 @@ ret_from_syscall:
 
 .align 2
 timer_interrupt:
+# 时钟中断
 	push %ds
 	push %es
 	push %fs
@@ -118,16 +119,25 @@ timer_interrupt:
 	addl $4, %esp
 	jmp ret_from_syscall
 
+# sys_execve()系统调用。取中断调用程序的代码指针作为参数，调用C函数 do_execve()。
+sys_execve:
+	lea eax, [EIP+esp]
+	push eax
+	call do_execve
+	add esp, 4 # 丢弃调用时入栈的EIP值
+	ret
+
+# sys_fork()系统调用，用于创建子进程。原型在include/linux/sys.h中。
 .align 2
 sys_fork:
-	call find_empty_process
-	testl %eax, %eax			# 检查返回值是不是负值, 负值意味着没有获得到pid资源
+	call find_empty_process 	# 调用C函数，取得一个进程号pid
+	testl %eax, %eax			# 检查返回值是不是负值, 负值意味着任务数组已满，未分配到pid
 	js 1f
 	push %gs
 	pushl %esi
 	pushl %edi
 	pushl %ebp
 	pushl %eax
-	call copy_process
+	call copy_process			# 复制进程
 	addl $20, %esp
 1: ret
