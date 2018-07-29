@@ -31,7 +31,7 @@ fn_ptr sys_call_table[] = {
     stub_syscall,
     stub_syscall,
     sys_sleep, // 10
-    stub_syscall,
+    sys_execve,
     stub_syscall,
     stub_syscall,
     stub_syscall,

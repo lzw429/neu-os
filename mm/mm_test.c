@@ -51,8 +51,8 @@ unsigned long *linear_to_pte(unsigned long addr) {
     // (for saving memory XD)
     unsigned long *pde = (unsigned long *)((addr >> 20) & 0xffc);
     // Page dir not exist
-    // Or the address is not inside the page table address range(<=4KB)
-    if(!(*pde & 1) || (unsigned long)pde > 0x1000) {
+    // Or the address is not inside the page table address range(<4KB)
+    if(!(*pde & 1) || (unsigned long)pde >= 0x1000) {
         return 0;
     }
     // Now it is page table address :P
